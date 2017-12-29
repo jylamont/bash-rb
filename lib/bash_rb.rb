@@ -1,4 +1,5 @@
 require 'json'
+require 'digest'
 
 module BashRb
   class Session

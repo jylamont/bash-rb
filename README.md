@@ -20,4 +20,10 @@ Or install it yourself as:
 
 ## Usage
 
-TODO
+```ruby
+require 'bash-rb'
+
+session = BashRb::Session.new
+session.ls
+=> ["Gemfile", "Gemfile.lock", "README.md", "Rakefile", "bash-rb.gemspec", "lib", "spec"]
+```
