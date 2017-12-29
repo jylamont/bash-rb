@@ -1,27 +1,10 @@
 require 'json'
 
 module BashRb
-  class ServiceNotFound < StandardError
-  end
-
   class Session
     attr_reader :process, :handlers, :response
   
     SLEEP_TIME = 0.2
-  
-    def self.services 
-      @@services ||= {}
-    end
-
-    def self.define_service(hash)
-      @@services ||= {}
-      @@services = Hash.new(@@services).merge(hash)
-    end
-  
-    def self.get_service(service_name)
-      return nil unless service_name.is_a?(String) || service_name.is_a?(Symbol)
-      # (@@services || {})[service_name.to_sym]
-    end
   
     def self.define_repl(hash)
       @@repl_languages ||= {}
@@ -149,14 +132,8 @@ module BashRb
     def handle_method_missing(caller, method_name, *args)
       options = extract_options!(args)
   
-      if service_command = extract_service_command(options[:service], method_name)
-        service_command.call(caller, options)
-      elsif options[:service]
-        raise BashRb::ServiceNotFound.new(["service: #{options[:service]}", method_name])
-      else
-        args.unshift(formatted_flags(options[:flags])) if options[:flags]
-        caller.push("#{method_name} #{args.join(' ')}")
-      end
+      args.unshift(formatted_flags(options[:flags])) if options[:flags]
+      caller.push("#{method_name} #{args.join(' ')}")
     end
   
     def exit_command
@@ -180,12 +157,6 @@ module BashRb
         flags.map { |f,v| "-#{f} #{v.to_s}".strip }.join(' ')
       else
         flags
-      end
-    end
-  
-    def extract_service_command(service, method)
-      if service_commands = BashRb::Session.get_service(service)
-        service_commands[method.to_sym]
       end
     end
   end

@@ -93,21 +93,5 @@ RSpec.describe BashRb::Session do
       expect(subject).to receive(:push).with("cx ssh -s some_app console")
       subject.cx("ssh", "-s some_app console")
     end
-
-    describe "#define_service" do
-      it "should allow you define a shortcut for a command" do
-        BashRb::Session.define_service(
-          some_app: {
-            ssh: lambda { |term, options| term.cx("ssh -s abc machine_name") }
-          }
-        )
-        expect(subject).to receive(:push).with("cx ssh -s abc machine_name")
-        subject.ssh(service: "some_app")
-      end
-
-      it "should raise BashRb::ServiceNotFound when service doesn't exist" do
-        expect { subject.ssh(service: "blah") }.to raise_error(BashRb::ServiceNotFound)
-      end
-    end
   end
 end
