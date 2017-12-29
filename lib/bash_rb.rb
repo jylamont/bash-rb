@@ -1,6 +1,6 @@
 module BashRb
   class Session
-    attr_reader :process, :handlers
+    attr_reader :process, :handlers, :response
   
     SLEEP_TIME = 0.2
   
@@ -65,7 +65,7 @@ module BashRb
     end
   
     def repl(command, options = {})
-      repl_handler = Allison::Services::Core::Terminal.repl_languages[options[:language]]
+      repl_handler = BashRb::Session.repl_languages[options[:language]]
       raise NotImplementedError.new("Language: #{options[:language]} not implemented") unless repl_handler.is_a?(Hash) && repl_handler[:handler]
   
       @handlers << repl_handler[:handler].new
@@ -73,12 +73,6 @@ module BashRb
   
       process.puts(command)
       process.puts(current_handler.command_delimiter("blank"))
-  
-      self
-    end
-  
-    def load(path)
-      push Allison::Scripts.read(path)
   
       self
     end
@@ -131,11 +125,11 @@ module BashRb
 
   class TerminalHandler
     def regex
-      @regex ||= /^allison\:terminal\:finish => (.+)$/
+      @regex ||= /^bashrb\:session\:finish => (.+)$/
     end
   
     def command_delimiter(command_digest)
-      "echo 'allison:terminal:finish => #{command_digest}'"
+      "echo 'bashrb:session:finish => #{command_digest}'"
     end
   
     def prepare_input(str)
@@ -151,8 +145,6 @@ module BashRb
   
       if service_command = extract_service_command(options[:service], method_name)
         service_command.call(caller, options)
-      elsif options[:service]
-        raise Allison::CommandNotFound.new(["service: #{options[:service]}", method_name])
       else
         args.unshift(formatted_flags(options[:flags])) if options[:flags]
         caller.push("#{method_name} #{args.join(' ')}")
@@ -192,11 +184,11 @@ module BashRb
   
   class RubyHandler < TerminalHandler
     def regex
-      @regex ||= /^"allison\:ruby\:finish => (.+)"$/
+      @regex ||= /^"bashrb\:ruby\:finish => (.+)"$/
     end
   
     def command_delimiter(command_digest)
-      "'allison:ruby:finish => #{command_digest}'"
+      "'bashrb:ruby:finish => #{command_digest}'"
     end
   
     def prepare_input(str)

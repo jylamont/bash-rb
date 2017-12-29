@@ -9,9 +9,9 @@ RSpec.describe BashRb::Session do
     end
 
     it "should not cache responses" do
-      expect(subject.instance_variable_get(:@response)).to be_empty
+      expect(subject.response).to be_empty
       expect(subject.push("echo 'Testing123'")).to eq(["Testing123"])
-      expect(subject.instance_variable_get(:@response)).to be_empty
+      expect(subject.response).to be_empty
     end
   end
 
