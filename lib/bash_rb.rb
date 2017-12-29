@@ -57,14 +57,17 @@ module BashRb
       end
     end
   
-    def repl(command, options = {})
-      repl_handler = BashRb::Session.repl_languages[options[:language]]
-      raise NotImplementedError.new("Language: #{options[:language]} not implemented") unless repl_handler.is_a?(Hash) && repl_handler[:handler]
-  
-      @handlers << repl_handler[:handler].new
+    def repl(language, &block)
+      repl_handler = BashRb::Session.repl_languages[language]
+      
+      unless repl_handler
+        raise NotImplementedError.new("Language: #{language} not implemented") 
+      end
+
+      @handlers << repl_handler.new
       @current_handler = nil
   
-      process.puts(command)
+      process.puts(block.call)
       process.puts(current_handler.command_delimiter("blank"))
   
       self
