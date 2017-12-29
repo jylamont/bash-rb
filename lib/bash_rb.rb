@@ -1,6 +1,9 @@
 require 'json'
 require 'digest'
 
+require_relative 'bash_rb/handlers/terminal'
+require_relative 'bash_rb/handlers/ruby'
+
 module BashRb
   class Session
     attr_reader :process, :handlers, :response
@@ -22,7 +25,7 @@ module BashRb
   
     def initialize
       @response = {}
-      @handlers = [TerminalHandler.new]
+      @handlers = [BashRb::Handlers::Terminal.new]
 
       @process = IO.popen("bash", "w+")
       Thread.new { handle_process_output }
@@ -110,91 +113,6 @@ module BashRb
       true
     rescue
       false
-    end
-  end
-
-  class TerminalHandler
-    def regex
-      @regex ||= /^bashrb\:session\:finish => (.+)$/
-    end
-  
-    def command_delimiter(command_digest)
-      "echo 'bashrb:session:finish => #{command_digest}'"
-    end
-  
-    def prepare_input(str)
-      str
-    end
-  
-    def prepare_output(lines)
-      lines
-    end
-  
-    def handle_method_missing(caller, method_name, *args)
-      options = extract_options!(args)
-  
-      args.unshift(formatted_flags(options[:flags])) if options[:flags]
-      caller.push("#{method_name} #{args.join(' ')}")
-    end
-  
-    def exit_command
-      "exit"
-    end
-  
-    def is_exiting?(command)
-      command.strip == exit_command
-    end
-  
-    def extract_options!(args)
-      if args.last.is_a?(Hash)
-        args.pop
-      else
-        {}
-      end
-    end
-  
-    def formatted_flags(flags)
-      if flags.is_a?(Hash)
-        flags.map { |f,v| "-#{f} #{v.to_s}".strip }.join(' ')
-      else
-        flags
-      end
-    end
-  end
-  
-  class RubyHandler < TerminalHandler
-    def regex
-      @regex ||= /^"bashrb\:ruby\:finish => (.+)"$/
-    end
-  
-    def command_delimiter(command_digest)
-      %("bashrb:ruby:finish => #{command_digest}")
-    end
-  
-    def prepare_input(str)
-      code = <<-EOM
-        require 'json'
-        result = begin
-        #{str}
-        end
-        JSON.dump([result])
-      EOM
-    end
-  
-    def prepare_output(lines)
-      text = sanitize(lines.pop.to_s)
-      JSON.parse(text).first
-    rescue
-      nil
-    end
-  
-    def handle_method_missing(caller, method_name, *args)
-      caller.push "#{method_name}(#{args.to_s[1...-1]})"
-    end
-  
-    def sanitize(text)
-      text.gsub!("\\\"", "\"")
-      text = text[1...-1] # Remove quotes from SSH string
     end
   end
 end
