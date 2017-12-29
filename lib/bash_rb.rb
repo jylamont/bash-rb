@@ -1,4 +1,9 @@
+require 'json'
+
 module BashRb
+  class ServiceNotFound < StandardError
+  end
+
   class Session
     attr_reader :process, :handlers, :response
   
@@ -15,7 +20,7 @@ module BashRb
   
     def self.get_service(service_name)
       return nil unless service_name.is_a?(String) || service_name.is_a?(Symbol)
-      (@@services || {})[service_name.to_sym]
+      # (@@services || {})[service_name.to_sym]
     end
   
     def self.define_repl(hash)
@@ -34,6 +39,7 @@ module BashRb
     def initialize
       @response = {}
       @handlers = [TerminalHandler.new]
+
       @process = IO.popen("bash", "w+")
       Thread.new { handle_process_output }
     end
@@ -90,7 +96,7 @@ module BashRb
         l = l.strip
   
         if l =~ current_handler.regex
-          @response[$1] = current_handler.prepare_output(lines)
+          @response[$1] = current_handler.prepare_output(lines) unless @response[$1]
           lines = []
         else
           lines << l.strip
@@ -145,6 +151,8 @@ module BashRb
   
       if service_command = extract_service_command(options[:service], method_name)
         service_command.call(caller, options)
+      elsif options[:service]
+        raise BashRb::ServiceNotFound.new(["service: #{options[:service]}", method_name])
       else
         args.unshift(formatted_flags(options[:flags])) if options[:flags]
         caller.push("#{method_name} #{args.join(' ')}")
@@ -188,7 +196,7 @@ module BashRb
     end
   
     def command_delimiter(command_digest)
-      "'bashrb:ruby:finish => #{command_digest}'"
+      %("bashrb:ruby:finish => #{command_digest}")
     end
   
     def prepare_input(str)
@@ -197,13 +205,12 @@ module BashRb
         result = begin
         #{str}
         end
-        JSON.dump [result]
+        JSON.dump([result])
       EOM
     end
   
     def prepare_output(lines)
-      lines.pop # Last element is garbage
-      text = sanitize(lines.last.to_s)
+      text = sanitize(lines.pop.to_s)
       JSON.parse(text).first
     rescue
       nil

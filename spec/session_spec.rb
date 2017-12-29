@@ -35,40 +35,42 @@ RSpec.describe BashRb::Session do
     end
   end
 
-  # describe :repl do
-  #   it "should raise an error if a language is not supported" do
-  #     expect { subject.repl("irb", language: "ruby") }.to raise_error(NotImplementedError, "Language: ruby not implemented")
+  describe :repl do
+    it "should raise an error if a language is not supported" do
+      expect do 
+        subject.repl("irb", language: "ruby")
+      end.to raise_error(NotImplementedError, "Language: ruby not implemented")
 
-  #     BashRb::Session.define_repl(
-  #       "ruby" => { handler: Allison::Services::Core::RubyHandler }
-  #     )
+      BashRb::Session.define_repl(
+        "ruby" => { handler: BashRb::RubyHandler }
+      )
 
-  #     expect { subject.repl("irb", language: "ruby") }.to_not raise_error
-  #   end
+      expect { subject.repl("irb", language: "ruby") }.to_not raise_error
+    end
 
-  #   it "should return Terminal object" do
-  #     BashRb::Session.define_repl(
-  #       "ruby" => { handler: Allison::Services::Core::RubyHandler }
-  #     )
+    it "should return Terminal object" do
+      BashRb::Session.define_repl(
+        "ruby" => { handler: BashRb::RubyHandler }
+      )
 
-  #     expect(subject.repl("irb", language: "ruby")).to eq(subject)
-  #   end
+      expect(subject.repl("irb", language: "ruby")).to eq(subject)
+    end
 
-  #   context "ruby" do
-  #     before do
-  #       BashRb::Session.define_repl(
-  #         "ruby" => { handler: Allison::Services::Core::RubyHandler }
-  #       )
-  #     end
+    context "ruby" do
+      before do
+        BashRb::Session.define_repl(
+          "ruby" => { handler: BashRb::RubyHandler }
+        )
+      end
 
-  #     after { subject.close }
+      after { subject.close }
 
-  #     it "should execute ruby code" do
-  #       subject.repl("irb", language: "ruby")
-  #       expect(subject.push("1 + 1")).to eq(2)
-  #     end
-  #   end
-  # end
+      it "should execute ruby code" do
+        subject.repl("irb", language: "ruby")
+        expect(subject.push("1 + 1")).to eq(2)
+      end
+    end
+  end
 
   describe "dynamic commands" do
     it "should pass basic commands to push" do
@@ -92,20 +94,20 @@ RSpec.describe BashRb::Session do
       subject.cx("ssh", "-s some_app console")
     end
 
-    # describe "#define_service" do
-    #   it "should allow you define a shortcut for a command" do
-    #     BashRb::Session.define_service(
-    #       some_app: {
-    #         ssh: lambda { |term, options| term.cx("ssh -s abc machine_name") }
-    #       }
-    #     )
-    #     expect(subject).to receive(:push).with("cx ssh -s abc machine_name")
-    #     subject.ssh(service: "some_app")
-    #   end
+    describe "#define_service" do
+      it "should allow you define a shortcut for a command" do
+        BashRb::Session.define_service(
+          some_app: {
+            ssh: lambda { |term, options| term.cx("ssh -s abc machine_name") }
+          }
+        )
+        expect(subject).to receive(:push).with("cx ssh -s abc machine_name")
+        subject.ssh(service: "some_app")
+      end
 
-    #   it "should raise Allison::CommandNotFound when service doesn't exist" do
-    #     expect { subject.ssh(service: "blah") }.to raise_error(Allison::CommandNotFound)
-    #   end
-    # end
+      it "should raise BashRb::ServiceNotFound when service doesn't exist" do
+        expect { subject.ssh(service: "blah") }.to raise_error(BashRb::ServiceNotFound)
+      end
+    end
   end
 end
