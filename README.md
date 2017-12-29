@@ -46,5 +46,13 @@ session.ssh("-i ~/.ssh/some-ec2.pem ec2-user@0.0.0.0")
 session.pwd
 => ["/home/ec2-user"]
 
+BashRb::Session.define_repl({
+  "ruby" => BashRb::Handlers::Ruby
+})
+
+session.repl("ruby") { "bundle exec rails c" }
+session.push("Rails::VERSION::STRING")
+=> "3.2.22.1"
+
 session.close
 ```
