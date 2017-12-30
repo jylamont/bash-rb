@@ -36,6 +36,7 @@ RSpec.describe BashRb::Session do
   end
 
   describe :repl do
+    before { BashRb::Session.reset_repl_languages }
     after { subject.close }
 
     it "should raise an error if a language is not supported" do
@@ -48,6 +49,30 @@ RSpec.describe BashRb::Session do
       )
 
       expect { subject.repl("ruby") { "irb" } }.to_not raise_error
+    end
+
+    it "should allow you to define language as symbol" do 
+      expect do 
+        subject.repl("ruby") { "irb" }
+      end.to raise_error(NotImplementedError, "Language: ruby not implemented")
+
+      BashRb::Session.define_repl(
+        ruby: BashRb::Handlers::Ruby
+      )
+
+      expect { subject.repl("ruby") { "irb" } }.to_not raise_error
+    end
+
+    it "should allow you to define language as string" do 
+      expect do 
+        subject.repl(:ruby) { "irb" }
+      end.to raise_error(NotImplementedError, "Language: ruby not implemented")
+
+      BashRb::Session.define_repl(
+        "ruby" => BashRb::Handlers::Ruby
+      )
+
+      expect { subject.repl(:ruby) { "irb" } }.to_not raise_error
     end
 
     it "should return Terminal object" do

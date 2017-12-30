@@ -11,16 +11,18 @@ module BashRb
     SLEEP_TIME = 0.2
   
     def self.define_repl(hash)
-      @@repl_languages ||= {}
-      @@repl_languages = Hash.new(@@repl_languages).merge(hash)
+      new_hash = hash.each_with_object({}) do |(k,v), h|
+        h[k.to_s] = v
+      end
+      @@repl_languages = repl_languages.merge(new_hash)
     end
   
     def self.repl_languages
-      if defined?(@@repl_languages)
-        @@repl_languages
-      else
-        {}
-      end
+      @@repl_languages ||= {}
+    end
+
+    def self.reset_repl_languages
+      @@repl_languages = {}
     end
   
     def initialize
@@ -58,7 +60,7 @@ module BashRb
     end
   
     def repl(language, &block)
-      repl_handler = BashRb::Session.repl_languages[language]
+      repl_handler = BashRb::Session.repl_languages[language.to_s]
       
       unless repl_handler
         raise NotImplementedError.new("Language: #{language} not implemented") 
