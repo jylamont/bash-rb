@@ -36,6 +36,8 @@ RSpec.describe BashRb::Session do
   end
 
   describe :repl do
+    after { subject.close }
+
     it "should raise an error if a language is not supported" do
       expect do 
         subject.repl("ruby") { "irb" }
@@ -57,13 +59,7 @@ RSpec.describe BashRb::Session do
     end
 
     context "ruby" do
-      before do
-        BashRb::Session.define_repl(
-          "ruby" => BashRb::Handlers::Ruby
-        )
-      end
-
-      after { subject.close }
+      before { BashRb::Session.define_repl("ruby" => BashRb::Handlers::Ruby) }
 
       it "should execute ruby code" do
         subject.repl("ruby") { "irb" }
