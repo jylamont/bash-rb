@@ -1,12 +1,16 @@
 class DynamicCommand
-  def self.interpret(method_sym, *args)
-    new.interpret(method_sym, *args)
+  def self.interpret(method_name, *args)
+    new.interpret(method_name, *args)
   end
 
-  def interpret(method_sym, *args)
+  def method_missing(method_name, *args)
+    interpret(method_name, *args)
+  end
+
+  def interpret(method_name, *args)
     options = extract_options!(args)
     args.unshift(formatted_flags(options[:flags])) if options[:flags]
-    "#{method_sym} #{args.join(' ')}"
+    "#{method_name} #{args.join(' ')}"
   end
 
   private

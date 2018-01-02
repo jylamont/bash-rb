@@ -70,7 +70,7 @@ module BashRb
       @handlers << repl_handler.new
       @current_handler = nil
   
-      process.puts(block.call)
+      process.puts(block.call(DynamicCommand.new))
       process.puts(current_handler.command_delimiter("blank"))
   
       self
