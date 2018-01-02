@@ -1,3 +1,5 @@
+
+
 module BashRb
   module Handlers
     class Terminal
@@ -18,10 +20,9 @@ module BashRb
       end
 
       def handle_method_missing(caller, method_name, *args)
-        options = extract_options!(args)
-
-        args.unshift(formatted_flags(options[:flags])) if options[:flags]
-        caller.push("#{method_name} #{args.join(' ')}")
+        caller.push(
+          DynamicCommand.interpret(method_name, *args)
+        )
       end
 
       def exit_command
@@ -30,22 +31,6 @@ module BashRb
 
       def is_exiting?(command)
         command.strip == exit_command
-      end
-
-      def extract_options!(args)
-        if args.last.is_a?(Hash)
-          args.pop
-        else
-          {}
-        end
-      end
-
-      def formatted_flags(flags)
-        if flags.is_a?(Hash)
-          flags.map { |f,v| "-#{f} #{v.to_s}".strip }.join(' ')
-        else
-          flags
-        end
       end
     end
   end

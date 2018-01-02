@@ -1,6 +1,7 @@
 require 'json'
 require 'digest'
 
+require_relative 'bash_rb/dynamic_command'
 require_relative 'bash_rb/handlers/terminal'
 require_relative 'bash_rb/handlers/ruby'
 
@@ -69,7 +70,7 @@ module BashRb
       @handlers << repl_handler.new
       @current_handler = nil
   
-      process.puts(block.call)
+      process.puts(block.call(DynamicCommand.new))
       process.puts(current_handler.command_delimiter("blank"))
   
       self

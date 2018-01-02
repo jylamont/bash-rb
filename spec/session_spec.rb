@@ -75,16 +75,16 @@ RSpec.describe BashRb::Session do
       expect { subject.repl(:ruby) { "irb" } }.to_not raise_error
     end
 
-    it "should return Terminal object" do
-      BashRb::Session.define_repl(
-        "ruby" => BashRb::Handlers::Ruby
-      )
-
-      expect(subject.repl("ruby") { "irb" }).to eq(subject)
-    end
-
     context "ruby" do
       before { BashRb::Session.define_repl("ruby" => BashRb::Handlers::Ruby) }
+
+      it "should return Terminal object" do  
+        expect(subject.repl("ruby") { "irb" }).to eq(subject)
+      end
+
+      it "should allow you to use dynamic command" do 
+        expect { subject.repl(:ruby) { |s| s.irb } }.to_not raise_error
+      end
 
       it "should execute ruby code" do
         subject.repl("ruby") { "irb" }
