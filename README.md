@@ -47,10 +47,10 @@ session.pwd
 => ["/home/ec2-user"]
 
 BashRb::Session.define_repl({
-  "ruby" => BashRb::Handlers::Ruby
+  ruby: BashRb::Handlers::Ruby
 })
 
-session.repl("ruby") { "bundle exec rails c" }
+session.repl("ruby") { |s| s.bundle("exec rails c") }
 session.push("Rails::VERSION::STRING")
 => "3.2.22.1"
 
