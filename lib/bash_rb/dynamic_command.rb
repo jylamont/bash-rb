@@ -10,7 +10,7 @@ class DynamicCommand
   def interpret(method_name, *args)
     options = extract_options!(args)
     args.unshift(formatted_flags(options[:flags])) if options[:flags]
-    "#{method_name} #{args.join(' ')}"
+    "#{method_name} #{args.join(' ')}".strip
   end
 
   private
