@@ -42,10 +42,13 @@ module BashRb
       raise "Terminal closed. You will need to create a new BashRb::Session." if @handlers.empty?
   
       if current_handler.is_exiting?(command)
+        push_command(command, with_curr_handler: false)
+        
+        sleep(SLEEP_TIME)
+
+        @response.clear
         @handlers.pop
         @current_handler = nil
-        push_command(command)
-        nil
       else
         command_digest = push_command(command)
         wait_for_command_output(command_digest)
@@ -84,10 +87,11 @@ module BashRb
       end
     end
   
-    def push_command(command)
+    def push_command(command, with_curr_handler: true)
       Digest::MD5.hexdigest(command).tap do |command_digest|
-        process.puts(current_handler.prepare_input(command))
-        process.puts(current_handler.command_delimiter(command_digest))
+        handler = with_curr_handler ? current_handler : @handlers.first
+        process.puts handler.prepare_input(command)
+        process.puts handler.command_delimiter(command_digest)
       end
     end
   
